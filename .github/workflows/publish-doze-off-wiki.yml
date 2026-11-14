@@ -1,0 +1,42 @@
+name: Publish Doze-off wiki page
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'wiki/Doze-off.md'
+      - '.github/workflows/publish-doze-off-wiki.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: doze-off-wiki
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+      - name: Update wiki page without replacing other pages
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          git clone "https://x-access-token:${GH_TOKEN}@github.com/${REPO}.wiki.git" /tmp/wiki
+          cp wiki/Doze-off.md /tmp/wiki/Doze-off.md
+          cd /tmp/wiki
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add Doze-off.md
+          if git diff --cached --quiet; then
+            echo "Wiki page already up to date"
+            exit 0
+          fi
+          git commit -m "docs: update Doze-off GSI release links"
+          git push origin HEAD
