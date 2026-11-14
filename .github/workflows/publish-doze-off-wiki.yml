@@ -19,24 +19,53 @@ jobs:
   publish:
     runs-on: ubuntu-latest
     steps:
-      - name: Check out source
+      - name: Check out page source
         uses: actions/checkout@v4
-      - name: Update wiki page without replacing other pages
+
+      - name: Validate page source
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -s wiki/Doze-off.md
+          grep -q '^# Doze-off' wiki/Doze-off.md
+          grep -q 'github.com/Doze-off/' wiki/Doze-off.md
+
+      - name: Publish the page to GitHub Wiki
         env:
-          GH_TOKEN: ${{ github.token }}
+          DEFAULT_TOKEN: ${{ github.token }}
+          WIKI_TOKEN: ${{ secrets.WIKI_TOKEN }}
           REPO: ${{ github.repository }}
         shell: bash
         run: |
           set -euo pipefail
-          git clone "https://x-access-token:${GH_TOKEN}@github.com/${REPO}.wiki.git" /tmp/wiki
-          cp wiki/Doze-off.md /tmp/wiki/Doze-off.md
-          cd /tmp/wiki
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add Doze-off.md
+          # The built-in Actions token may not be authorized for the Wiki,
+          # which is a separate Git repository. Prefer an optional PAT.
+          TOKEN="${WIKI_TOKEN:-$DEFAULT_TOKEN}"
+          export GIT_TERMINAL_PROMPT=0
+          export GIT_CONFIG_NOSYSTEM=1
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          # An ephemeral askpass script avoids embedding a token in a remote URL.
+          printf '#!/bin/sh\ncase "$1" in *Username*) printf "x-access-token\\n";; *Password*) printf "%%s\\n" "$WIKI_AUTH_TOKEN";; esac\n' > /tmp/wiki-askpass
+          chmod 700 /tmp/wiki-askpass
+          export WIKI_AUTH_TOKEN="$TOKEN"
+          export GIT_ASKPASS=/tmp/wiki-askpass
+          trap 'rm -f /tmp/wiki-askpass' EXIT
+          WIKI_URL="https://github.com/${REPO}.wiki.git"
+          if ! git clone --quiet "$WIKI_URL" /tmp/gsiforgalaxy-wiki; then
+            echo "::error::Cannot clone ${REPO}.wiki.git. Ensure the Wiki is enabled AND initialized (create the first page in Settings > Wiki). If it already exists, add a WIKI_TOKEN repository secret containing a classic PAT with repo scope and Wiki write access."
+            exit 1
+          fi
+          cp wiki/Doze-off.md /tmp/gsiforgalaxy-wiki/Doze-off.md
+          cd /tmp/gsiforgalaxy-wiki
+          git add -- Doze-off.md
           if git diff --cached --quiet; then
-            echo "Wiki page already up to date"
+            echo "Doze-off wiki page is already up to date."
             exit 0
           fi
-          git commit -m "docs: update Doze-off GSI release links"
-          git push origin HEAD
+          git commit -m 'docs: sync Doze-off GSI releases'
+          if ! git push origin HEAD; then
+            echo "::error::Wiki push was rejected. Configure WIKI_TOKEN (classic PAT with repo scope) or check Wiki write access and branch protection."
+            exit 1
+          fi
+          echo "Published https://github.com/${REPO}/wiki/Doze-off"
