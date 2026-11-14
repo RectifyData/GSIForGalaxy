@@ -2,7 +2,7 @@
 
 GSIs by [Doze-off](https://github.com/Doze-off), with links to their GitHub Releases pages.
 
-> These release-page links do not guarantee that a particular device is supported or that a downloadable image currently exists. Read the release notes and verify your device's architecture and partition requirements before flashing.
+> These release-page links do not guarantee that a particular device is supported or that a downloadable image currently exists. Read the release notes and verify your device's architecture and parity before flashing.
 
 | GSI | Releases |
 | --- | --- |
@@ -22,6 +22,7 @@ GSIs by [Doze-off](https://github.com/Doze-off), with links to their GitHub Rele
 | Lunaris-AOSP | [Releases](https://github.com/Doze-off/Lunaris-AOSP_gsi/releases) |
 | Matrixx | [Releases](https://github.com/Doze-off/Matrixx_treble/releases) |
 | MistOS | [Releases](https://github.com/Doze-off/Mist-OS_gsi/releases) |
+| mjtya | [Releases](https://github.com/vrmikkit/mjtyar/releases) |
 | PixelOS | [Releases](https://github.com/Doze-off/PixelOS_GSI_treble/releases) |
 | Project CiRCLE | [Releases](https://github.com/Doze-off/Project-CiRCLE_gsi/releases) |
 | Project Sakura | [Releases](https://github.com/Doze-off/ProjectSakura_gsi/releases) |
@@ -29,4 +30,4 @@ GSIs by [Doze-off](https://github.com/Doze-off), with links to their GitHub Rele
 | WitAqua | [Releases](https://github.com/Doze-off/WitAqua_treble/releases) |
 | YAAP | [Releases](https://github.com/Doze-off/YAAP_treble/releases) |
 
-**Total: 22 projects.**
+**Total: 23 projects.**
